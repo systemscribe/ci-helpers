@@ -1,5 +1,5 @@
 ---
-name: CI Build and Upload
+name: CI Build and Push
 
 on:
   pull_request:
