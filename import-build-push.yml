@@ -12,7 +12,7 @@ jobs:
     if: ${{ github.event.label.name == 'CI:TriggerBuild' }}
     uses: systemscribe/ci-helpers/.github/workflows/build-push.yml@main
     with:
-      app-name: "go-ethereum"
+      app-name: ${{ vars.APP_NAME }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
