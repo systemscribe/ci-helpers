@@ -2,13 +2,21 @@
 name: CI Build and Push
 
 on:
-  pull_request:
-    types:
-      - closed
-      - labeled
+  workflow_call:
+    inputs:
+      app-name:
+        required: true
+        type: string
+    secrets:
+      PAT_TOKEN:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+      DOCKERHUB_USERNAME:
+        required: true
 
 jobs:
-  build-and-upload:
+  build-and-push:
     if: ${{ github.event.label.name == 'CI:TriggerBuild' }}
     runs-on: self-hosted
 
@@ -36,4 +44,19 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64,linux/386
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ var.APP_NAME }}:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ inputs.app-name }}:latest
+
+  trigger-actions:
+    runs-on: self-hosted
+    needs: build-and-push
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: '${{ secrets.DOCKERHUB_USERNAME }}',
+              repo: 'zkevm-node',
+              workflow_id: 'provision.yml',
+              ref: 'main'
+            })
